@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>browser.js — The Zero-Overhead Web Framework</title>
+  <style>
+    :root {
+      --brand: #4f46e5;
+      --brand-light: #818cf8;
+      --brand-dark: #3730a3;
+      --accent: #06b6d4;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #334155;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --green: #22c55e;
+      --radius: 12px;
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(15,23,42,.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--surface2);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .75rem 2rem; gap: 1rem;
+    }
+    .nav-logo { font-weight: 700; font-size: 1.1rem; color: var(--text); text-decoration: none; }
+    .nav-logo span { color: var(--brand-light); }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+    .nav-links a { color: var(--text-muted); text-decoration: none; font-size: .95rem; transition: color .15s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--brand); color: #fff; border: none; border-radius: 8px;
+      padding: .45rem 1.1rem; font-size: .9rem; font-weight: 600; cursor: pointer;
+      text-decoration: none; transition: background .15s;
+    }
+    .nav-cta:hover { background: var(--brand-dark); }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+      background: radial-gradient(ellipse at top, #1e1b4b 0%, var(--bg) 60%);
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(79,70,229,.2);
+      border: 1px solid rgba(129,140,248,.3);
+      color: var(--brand-light);
+      border-radius: 999px;
+      padding: .25rem .9rem;
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 1.25rem;
+    }
+    h1 em { font-style: normal; color: var(--brand-light); }
+    .hero-sub {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      max-width: 640px;
+      margin: 0 auto 2.5rem;
+    }
+    .hero-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-block; border-radius: 10px;
+      padding: .75rem 1.75rem; font-weight: 700; font-size: 1rem;
+      text-decoration: none; transition: all .15s; cursor: pointer;
+    }
+    .btn-primary { background: var(--brand); color: #fff; }
+    .btn-primary:hover { background: var(--brand-dark); transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--surface2); }
+    .btn-ghost:hover { background: var(--surface); }
+
+    .size-badge {
+      margin-top: 3rem;
+      display: inline-flex; align-items: center; gap: .6rem;
+      background: rgba(34,197,94,.1);
+      border: 1px solid rgba(34,197,94,.3);
+      border-radius: 999px;
+      padding: .4rem 1.2rem;
+      font-size: .85rem; color: var(--green); font-weight: 600;
+    }
+    .size-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+
+    /* CODE SNIPPET */
+    .snippet-section { padding: 3rem 2rem; display: flex; justify-content: center; }
+    .snippet-wrap {
+      background: var(--surface); border-radius: var(--radius);
+      border: 1px solid var(--surface2);
+      max-width: 680px; width: 100%; overflow: hidden;
+    }
+    .snippet-bar {
+      background: var(--surface2); padding: .6rem 1rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .snippet-bar .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .snippet-bar .dot:nth-child(1) { background: #f87171; }
+    .snippet-bar .dot:nth-child(2) { background: #fbbf24; }
+    .snippet-bar .dot:nth-child(3) { background: #4ade80; }
+    .snippet-bar span { color: var(--text-muted); font-size: .8rem; margin-left: auto; }
+    pre {
+      padding: 1.5rem;
+      font-size: .9rem;
+      overflow-x: auto;
+      line-height: 1.7;
+      font-family: 'Fira Code', 'Cascadia Code', monospace;
+    }
+    .kw { color: #c084fc; }
+    .fn { color: #67e8f9; }
+    .str { color: #86efac; }
+    .cm { color: #6b7280; font-style: italic; }
+    .tag { color: #f97316; }
+    .attr { color: #fbbf24; }
+
+    /* FEATURES */
+    section { padding: 5rem 2rem; }
+    .section-label {
+      text-align: center; color: var(--brand-light);
+      font-size: .8rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; margin-bottom: .75rem;
+    }
+    h2 {
+      text-align: center; font-size: clamp(1.8rem, 4vw, 2.5rem);
+      font-weight: 800; margin-bottom: 1rem;
+    }
+    .section-desc {
+      text-align: center; color: var(--text-muted);
+      max-width: 540px; margin: 0 auto 3rem; font-size: 1.05rem;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem; max-width: 1100px; margin: 0 auto;
+    }
+    .feature-card {
+      background: var(--surface); border: 1px solid var(--surface2);
+      border-radius: var(--radius); padding: 1.75rem;
+      transition: border-color .2s, transform .2s;
+    }
+    .feature-card:hover { border-color: var(--brand-light); transform: translateY(-2px); }
+    .feature-icon { font-size: 1.8rem; margin-bottom: .75rem; }
+    .feature-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: .5rem; }
+    .feature-card p { color: var(--text-muted); font-size: .9rem; }
+
+    /* COMPARISON TABLE */
+    .compare-section { background: var(--surface); }
+    .table-wrap { max-width: 800px; margin: 0 auto; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+    thead th { padding: .85rem 1rem; text-align: left; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--surface2); }
+    tbody td { padding: .8rem 1rem; border-bottom: 1px solid var(--surface2); }
+    tbody tr:last-child td { border-bottom: none; }
+    .check { color: var(--green); font-size: 1.1rem; }
+    .cross { color: #ef4444; font-size: 1.1rem; }
+    .highlight-col { color: var(--brand-light); font-weight: 700; }
+
+    /* INSTALL */
+    .install-section { background: radial-gradient(ellipse at bottom, #1e1b4b 0%, var(--bg) 70%); }
+    .install-tabs { display: flex; gap: .5rem; justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .tab-btn {
+      background: var(--surface); border: 1px solid var(--surface2);
+      color: var(--text-muted); border-radius: 8px; padding: .4rem 1rem;
+      font-size: .85rem; font-weight: 600; cursor: pointer; transition: all .15s;
+    }
+    .tab-btn.active, .tab-btn:hover { background: var(--brand); border-color: var(--brand); color: #fff; }
+    .tab-content { display: none; max-width: 680px; margin: 0 auto; }
+    .tab-content.active { display: block; }
+
+    /* TESTIMONIALS */
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem; max-width: 1100px; margin: 0 auto;
+    }
+    .testimonial {
+      background: var(--surface); border: 1px solid var(--surface2);
+      border-radius: var(--radius); padding: 1.75rem;
+    }
+    .testimonial-text { color: var(--text-muted); font-style: italic; margin-bottom: 1rem; font-size: .95rem; }
+    .testimonial-author { display: flex; align-items: center; gap: .75rem; }
+    .avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 1rem;
+    }
+    .author-name { font-weight: 700; font-size: .9rem; }
+    .author-title { color: var(--text-muted); font-size: .8rem; }
+
+    /* ANNOUNCEMENT */
+    .announcement {
+      background: var(--surface);
+      border-left: 4px solid var(--brand-light);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 2rem; max-width: 800px; margin: 0 auto;
+    }
+    .announcement h3 { font-size: 1.4rem; margin-bottom: .75rem; }
+    .announcement p { color: var(--text-muted); margin-bottom: 1rem; }
+    .announcement p:last-child { margin-bottom: 0; }
+    .announcement a { color: var(--brand-light); }
+
+    /* FOOTER */
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--surface2);
+      text-align: center;
+      padding: 2.5rem 2rem;
+      color: var(--text-muted);
+      font-size: .875rem;
+    }
+    footer a { color: var(--brand-light); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    .footer-links { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo"><span>browser</span>.js</a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#install">Install</a></li>
+    <li><a href="guide.html">Guide</a></li>
+    <li><a href="#announcement">Release Notes</a></li>
+  </ul>
+  <a href="guide.html" class="nav-cta">Get Started →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">🚀 Stable · v∞.∞.∞ — Now shipping</div>
+  <h1>The <em>last</em> web framework<br>you will ever need.</h1>
+  <p class="hero-sub">
+    browser.js is the fastest, most complete, most future-proof web framework
+    ever created — and it is already installed in every browser on the planet.
+  </p>
+  <div class="hero-buttons">
+    <a href="guide.html" class="btn btn-primary">Read the Docs</a>
+    <a href="#install" class="btn btn-ghost">View Install Options</a>
+  </div>
+  <div class="size-badge">
+    <span class="dot"></span>
+    Total library size: <strong>0 bytes</strong> &nbsp;·&nbsp; Download time: <strong>0 ms</strong> &nbsp;·&nbsp; Runtime overhead: <strong>0 μs</strong>
+  </div>
+</section>
+
+<!-- QUICK CODE SNIPPET -->
+<div class="snippet-section">
+  <div class="snippet-wrap">
+    <div class="snippet-bar">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span>app.html — a complete browser.js application</span>
+    </div>
+    <pre><span class="cm">&lt;!-- Step 1: Open a browser. browser.js is now loaded. --&gt;</span>
+<span class="cm">&lt;!-- Step 2: Write your app. --&gt;</span>
+<span class="tag">&lt;!DOCTYPE html&gt;</span>
+<span class="tag">&lt;html</span> <span class="attr">lang</span>=<span class="str">"en"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;head&gt;&lt;title&gt;</span>My App<span class="tag">&lt;/title&gt;&lt;/head&gt;</span>
+  <span class="tag">&lt;body&gt;</span>
+    <span class="tag">&lt;h1&gt;</span>Hello, World!<span class="tag">&lt;/h1&gt;</span>
+    <span class="tag">&lt;script&gt;</span>
+      <span class="cm">// The entire Web Platform is available right here.</span>
+      <span class="kw">const</span> h1 = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">'h1'</span>);
+      h1.textContent = <span class="str">'Hello, browser.js!'</span>;
+    <span class="tag">&lt;/script&gt;</span>
+  <span class="tag">&lt;/body&gt;</span>
+<span class="tag">&lt;/html&gt;</span>
+
+<span class="cm">&lt;!-- Step 3: There is no step 3. --&gt;</span></pre>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <p class="section-label">Why browser.js</p>
+  <h2>Everything. For free. Forever.</h2>
+  <p class="section-desc">
+    Every API you will ever need, backed by the combined engineering effort of
+    every browser vendor on Earth.
+  </p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Instantaneous Performance</h3>
+      <p>browser.js adds exactly 0 μs of overhead to every function call.
+         The framework is the browser engine. There is nothing faster.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <h3>Complete API Coverage</h3>
+      <p>DOM, Fetch, Canvas, WebGL, WebGPU, WebRTC, Workers, WASM, Crypto,
+         Bluetooth, USB, NFC — the entire living Web Platform, in one package.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔄</div>
+      <h3>Automatic Updates</h3>
+      <p>New JavaScript, CSS, and HTML features are delivered automatically
+         when your users update their browser. No <code>npm update</code>. No migration guide.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📦</div>
+      <h3>Zero Bundle Size</h3>
+      <p>browser.js weighs 0 bytes. browser.css weighs 0 bytes. Lighthouse
+         will thank you. Your users' data plans will thank you.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h3>Security by the Standards Body</h3>
+      <p>Security patches are maintained by browser vendors, TC39, the WHATWG,
+         the W3C, and the IETF — not a solo open-source maintainer on a Sunday.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧩</div>
+      <h3>No Build Step Required</h3>
+      <p>There is no bundler config, no transpilation, no code generation. Open
+         your file in a browser and the framework is already running.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">♾️</div>
+      <h3>Infinite Scalability</h3>
+      <p>browser.js has been running at global scale — on billions of devices
+         simultaneously — for decades. We have not experienced downtime.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📖</div>
+      <h3>Proven in Literature</h3>
+      <p>Unknowingly and heavily used by Maximiliano Firtman in his seminal book
+         <em>Vanilla Web</em> (Manning). Every example in the book runs on browser.js.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💸</div>
+      <h3>Completely Free</h3>
+      <p>No license fee. No hosted service tier. No enterprise upsell.
+         We do not know how to charge for 0 bytes and have not tried.</p>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON TABLE -->
+<section class="compare-section" id="compare">
+  <p class="section-label">Comparison</p>
+  <h2>How does it stack up?</h2>
+  <p class="section-desc">An objective comparison against the leading alternatives.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Capability</th>
+          <th class="highlight-col">browser.js</th>
+          <th>Other frameworks</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Bundle size</td><td class="highlight-col">0 bytes</td><td>&gt; 0 bytes</td></tr>
+        <tr><td>Per-call runtime overhead</td><td class="highlight-col">0 μs</td><td>&gt; 0 μs</td></tr>
+        <tr><td>New JS features (automatic)</td><td class="check highlight-col">✓</td><td class="cross">✗</td></tr>
+        <tr><td>New CSS features (automatic)</td><td class="check highlight-col">✓</td><td class="cross">✗</td></tr>
+        <tr><td>New HTML features (automatic)</td><td class="check highlight-col">✓</td><td class="cross">✗</td></tr>
+        <tr><td>Breaking changes introduced by library</td><td class="check highlight-col">Never</td><td>Sometimes</td></tr>
+        <tr><td>Security maintained by standards body</td><td class="check highlight-col">✓</td><td class="cross">✗</td></tr>
+        <tr><td>Requires <code>node_modules</code></td><td class="check highlight-col">No</td><td>Usually yes</td></tr>
+        <tr><td>Works in Netscape Navigator 1.0</td><td class="check highlight-col">✓</td><td class="cross">✗</td></tr>
+        <tr><td>Cost</td><td class="highlight-col">$0</td><td>Varies</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section class="install-section" id="install">
+  <p class="section-label">Installation</p>
+  <h2>Start in seconds. Or less.</h2>
+  <p class="section-desc">Multiple installation paths are provided for compatibility with various developer preferences.</p>
+  <div class="install-tabs">
+    <button class="tab-btn active" onclick="showTab('already', event)">Already Installed</button>
+    <button class="tab-btn" onclick="showTab('cdn', event)">CDN</button>
+    <button class="tab-btn" onclick="showTab('npm', event)">npm</button>
+  </div>
+
+  <div id="tab-already" class="tab-content active">
+    <div class="snippet-wrap">
+      <div class="snippet-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span>Option 1 — Recommended</span>
+      </div>
+      <pre><span class="cm">// Open a browser.
+// browser.js is now loaded.
+// Proceed with your application.</span>
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">'browser.js is ready.'</span>); <span class="cm">// → true</span></pre>
+    </div>
+  </div>
+
+  <div id="tab-cdn" class="tab-content">
+    <div class="snippet-wrap">
+      <div class="snippet-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span>CDN via jsDelivr</span>
+      </div>
+      <pre><span class="cm">&lt;!-- JavaScript (0 bytes) --&gt;</span>
+<span class="tag">&lt;script </span><span class="attr">src</span>=<span class="str">"https://cdn.jsdelivr.net/gh/peteralieber/browser@main/browser.js"</span><span class="tag">&gt;&lt;/script&gt;</span>
+
+<span class="cm">&lt;!-- CSS (0 bytes) --&gt;</span>
+<span class="tag">&lt;link </span><span class="attr">rel</span>=<span class="str">"stylesheet"</span>
+      <span class="attr">href</span>=<span class="str">"https://cdn.jsdelivr.net/gh/peteralieber/browser@main/browser.css"</span><span class="tag">&gt;</span></pre>
+    </div>
+  </div>
+
+  <div id="tab-npm" class="tab-content">
+    <div class="snippet-wrap">
+      <div class="snippet-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span>npm / yarn / pnpm / bun</span>
+      </div>
+      <pre><span class="cm"># Install the framework</span>
+<span class="fn">npm install browser</span>
+
+<span class="cm"># Your node_modules directory has not meaningfully changed in size.</span>
+<span class="cm"># This is expected.</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <p class="section-label">Community</p>
+  <h2>Loved by developers everywhere</h2>
+  <p class="section-desc">Millions of developers have been using browser.js for years without realising it.</p>
+  <div class="testimonials-grid">
+    <div class="testimonial">
+      <p class="testimonial-text">"I've been using browser.js on every project for over a decade.
+         I didn't know it had a name, but I am not surprised it does."</p>
+      <div class="testimonial-author">
+        <div class="avatar">A</div>
+        <div>
+          <div class="author-name">A. Developer</div>
+          <div class="author-title">Senior Engineer, The Internet</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <p class="testimonial-text">"After migrating from our previous framework to browser.js,
+         our Lighthouse performance score increased to 100. We are not certain those events
+         are related, but we are keeping browser.js."</p>
+      <div class="testimonial-author">
+        <div class="avatar">B</div>
+        <div>
+          <div class="author-name">B. Engineer</div>
+          <div class="author-title">Principal Architect, A Startup</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <p class="testimonial-text">"We removed 247 dependencies and replaced them all with browser.js.
+         Our CI pipeline went from 18 minutes to 4 minutes. I would like to file a bug, but I
+         cannot find one."</p>
+      <div class="testimonial-author">
+        <div class="avatar">C</div>
+        <div>
+          <div class="author-name">C. Architect</div>
+          <div class="author-title">VP of Engineering, A Larger Startup</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RELEASE ANNOUNCEMENT -->
+<section id="announcement" style="background: var(--surface);">
+  <p class="section-label">Release Notes</p>
+  <h2>Official Release Announcement</h2>
+  <p class="section-desc">Introducing browser.js — the framework that was always there.</p>
+
+  <div class="announcement">
+    <h3>browser.js v∞ — General Availability</h3>
+    <p>
+      Today we are proud to formally announce the general availability of <strong>browser.js</strong>,
+      the zero-overhead JavaScript framework that ships built-in to every web browser.
+    </p>
+    <p>
+      browser.js is the culmination of decades of collaborative engineering by browser vendors,
+      standards bodies, and the broader web community. It exposes every DOM API, every Web Platform
+      interface, and every CSS capability in a single, unified, pre-installed runtime — all without
+      adding a single byte to your application bundle.
+    </p>
+    <p>
+      The framework has, in fact, been in production use for as long as the web has existed.
+      Notable prior users include Maximiliano Firtman, whose book
+      <a href="https://www.manning.com/books/vanilla-web" target="_blank" rel="noopener"><em>Vanilla Web</em> (Manning Publications)</a>
+      leverages browser.js exclusively for all of its code examples, albeit without formally
+      acknowledging the dependency.
+    </p>
+    <p>
+      <strong>What's new in v∞:</strong> All features added to the web platform since the previous
+      release are now included. No action is required on your part. This will continue to be the
+      case for all future releases.
+    </p>
+    <p>
+      We look forward to never issuing a deprecation notice, never publishing a migration guide,
+      and never breaking your application.
+    </p>
+    <p style="margin-top:1.5rem">
+      <a href="guide.html" class="btn btn-primary">Read the User Guide →</a>
+    </p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="guide.html">User Guide</a>
+    <a href="https://github.com/peteralieber/browser" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://cdn.jsdelivr.net/gh/peteralieber/browser@main/browser.js" target="_blank" rel="noopener">browser.js (0 bytes)</a>
+    <a href="https://cdn.jsdelivr.net/gh/peteralieber/browser@main/browser.css" target="_blank" rel="noopener">browser.css (0 bytes)</a>
+  </div>
+  <p>
+    browser.js is MIT licensed and already installed in your browser.<br>
+    © The Internet. All rights reserved. No bytes were harmed in the making of this framework.
+  </p>
+</footer>
+
+<script>
+  function showTab(name, event) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+  }
+</script>
+</body>
+</html>
