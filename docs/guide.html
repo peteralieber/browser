@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Guide — browser.js</title>
+  <style>
+    :root {
+      --brand: #4f46e5;
+      --brand-light: #818cf8;
+      --brand-dark: #3730a3;
+      --accent: #06b6d4;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #334155;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --green: #22c55e;
+      --radius: 12px;
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --sidebar-w: 240px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.7;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(15,23,42,.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--surface2);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .75rem 2rem; gap: 1rem;
+    }
+    .nav-logo { font-weight: 700; font-size: 1.1rem; color: var(--text); text-decoration: none; }
+    .nav-logo span { color: var(--brand-light); }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+    .nav-links a { color: var(--text-muted); text-decoration: none; font-size: .95rem; transition: color .15s; }
+    .nav-links a:hover { color: var(--text); }
+
+    /* LAYOUT */
+    .layout { display: flex; min-height: calc(100vh - 56px); }
+
+    /* SIDEBAR */
+    aside {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      border-right: 1px solid var(--surface2);
+      padding: 2rem 1rem;
+      position: sticky;
+      top: 56px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+    }
+    aside h4 {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: .5rem;
+      margin-top: 1.5rem;
+      padding-left: .75rem;
+    }
+    aside h4:first-child { margin-top: 0; }
+    aside ul { list-style: none; }
+    aside ul li a {
+      display: block;
+      padding: .3rem .75rem;
+      border-radius: 6px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: .875rem;
+      transition: all .15s;
+    }
+    aside ul li a:hover, aside ul li a.active {
+      background: rgba(79,70,229,.15);
+      color: var(--brand-light);
+    }
+
+    /* MAIN CONTENT */
+    main {
+      flex: 1;
+      padding: 3rem 2.5rem;
+      max-width: 860px;
+    }
+    main h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      margin-bottom: .5rem;
+      text-align: left;
+    }
+    main h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-top: 3rem;
+      margin-bottom: 1rem;
+      padding-bottom: .5rem;
+      border-bottom: 1px solid var(--surface2);
+      text-align: left;
+    }
+    main h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-top: 2rem;
+      margin-bottom: .75rem;
+      color: var(--brand-light);
+    }
+    main p { margin-bottom: 1rem; color: var(--text-muted); }
+    main p strong { color: var(--text); }
+    main a { color: var(--brand-light); }
+    main ul, main ol { margin: 0 0 1rem 1.5rem; color: var(--text-muted); }
+    main li { margin-bottom: .3rem; }
+    main li strong { color: var(--text); }
+
+    .lead {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      border-left: 3px solid var(--brand);
+      padding-left: 1rem;
+    }
+
+    /* CODE */
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      overflow-x: auto;
+      font-size: .88rem;
+      line-height: 1.7;
+      margin-bottom: 1.25rem;
+      font-family: 'Fira Code', 'Cascadia Code', monospace;
+    }
+    code {
+      background: var(--surface2);
+      border-radius: 4px;
+      padding: .15em .4em;
+      font-size: .88em;
+      font-family: 'Fira Code', 'Cascadia Code', monospace;
+    }
+    pre code { background: none; padding: 0; font-size: 1em; }
+    .kw { color: #c084fc; }
+    .fn { color: #67e8f9; }
+    .str { color: #86efac; }
+    .cm { color: #6b7280; font-style: italic; }
+    .tag { color: #f97316; }
+    .attr { color: #fbbf24; }
+
+    /* CALLOUT */
+    .callout {
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      font-size: .9rem;
+    }
+    .callout.info {
+      background: rgba(6,182,212,.1);
+      border-left: 3px solid var(--accent);
+      color: #7dd3fc;
+    }
+    .callout.tip {
+      background: rgba(34,197,94,.1);
+      border-left: 3px solid var(--green);
+      color: #86efac;
+    }
+    .callout.note {
+      background: rgba(79,70,229,.12);
+      border-left: 3px solid var(--brand-light);
+      color: var(--brand-light);
+    }
+
+    /* API TABLE */
+    .api-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: .88rem; }
+    .api-table th { text-align: left; padding: .6rem .8rem; border-bottom: 1px solid var(--surface2); color: var(--text-muted); font-weight: 600; }
+    .api-table td { padding: .55rem .8rem; border-bottom: 1px solid rgba(51,65,85,.5); vertical-align: top; }
+    .api-table td:first-child { font-family: monospace; color: var(--accent); white-space: nowrap; }
+    .api-table td:last-child { color: var(--text-muted); }
+
+    /* SECTION ANCHOR */
+    .anchor { scroll-margin-top: 80px; }
+
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--surface2);
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-size: .875rem;
+    }
+    footer a { color: var(--brand-light); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo"><span>browser</span>.js</a>
+  <ul class="nav-links">
+    <li><a href="index.html#features">Features</a></li>
+    <li><a href="index.html#install">Install</a></li>
+    <li><a href="guide.html" style="color:var(--text)">Guide</a></li>
+    <li><a href="index.html#announcement">Release Notes</a></li>
+  </ul>
+</nav>
+
+<div class="layout">
+  <aside>
+    <h4>Introduction</h4>
+    <ul>
+      <li><a href="#what-is">What is browser.js?</a></li>
+      <li><a href="#philosophy">Philosophy</a></li>
+    </ul>
+    <h4>Getting Started</h4>
+    <ul>
+      <li><a href="#installation">Installation</a></li>
+      <li><a href="#quick-start">Quick Start</a></li>
+      <li><a href="#cdn">CDN Usage</a></li>
+    </ul>
+    <h4>Core Concepts</h4>
+    <ul>
+      <li><a href="#dom">DOM Manipulation</a></li>
+      <li><a href="#events">Events</a></li>
+      <li><a href="#fetch">Data Fetching</a></li>
+      <li><a href="#storage">Storage</a></li>
+      <li><a href="#css">CSS &amp; Styling</a></li>
+      <li><a href="#workers">Web Workers</a></li>
+    </ul>
+    <h4>Advanced</h4>
+    <ul>
+      <li><a href="#webgl">WebGL &amp; WebGPU</a></li>
+      <li><a href="#websockets">WebSockets</a></li>
+      <li><a href="#crypto">Web Crypto</a></li>
+      <li><a href="#wasm">WebAssembly</a></li>
+    </ul>
+    <h4>Reference</h4>
+    <ul>
+      <li><a href="#api-reference">Full API Reference</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+  </aside>
+
+  <main>
+    <h1>User Guide</h1>
+    <p class="lead">
+      Everything you need to build world-class web applications using browser.js —
+      the framework already running in every browser on the planet.
+    </p>
+
+    <!-- WHAT IS -->
+    <h2 id="what-is" class="anchor">What is browser.js?</h2>
+    <p>
+      <strong>browser.js</strong> is a zero-byte JavaScript framework that exposes the complete
+      Web Platform API. It is pre-installed in every web browser and requires no download,
+      no build step, and no configuration.
+    </p>
+    <p>
+      The companion stylesheet, <strong>browser.css</strong>, provides the full CSS cascade,
+      layout engine, and every CSS property standardized to date — also at 0 bytes.
+    </p>
+    <div class="callout tip">
+      <strong>Good to know:</strong> If you have ever opened a browser and written JavaScript,
+      you have already been using browser.js. This guide simply formalizes that relationship.
+    </div>
+
+    <!-- PHILOSOPHY -->
+    <h2 id="philosophy" class="anchor">Philosophy</h2>
+    <p>
+      Modern browsers implement a vast, standardized, and heavily optimized API surface. The
+      WHATWG, W3C, TC39, and IETF maintain these standards collaboratively, with input from
+      every major browser vendor. The result is a platform that:
+    </p>
+    <ul>
+      <li>Receives continuous improvements with no action required from developers</li>
+      <li>Is optimized at the engine level — no JavaScript wrapper can be faster</li>
+      <li>Ships security patches globally without requiring users to update your app</li>
+      <li>Carries no supply-chain risk from third-party dependencies</li>
+    </ul>
+    <p>
+      browser.js formalizes the decision to use this platform directly, deliberately, and
+      with zero overhead.
+    </p>
+
+    <!-- INSTALLATION -->
+    <h2 id="installation" class="anchor">Installation</h2>
+
+    <h3>Option 1 — CDN</h3>
+    <p id="cdn" class="anchor">
+      For projects that require an explicit dependency declaration, include browser.js
+      via the jsDelivr CDN:
+    </p>
+    <pre><span class="tag">&lt;!-- JavaScript (0 bytes, loads instantly) --&gt;</span>
+<span class="tag">&lt;script </span><span class="attr">src</span>=<span class="str">"https://cdn.jsdelivr.net/gh/peteralieber/browser@main/browser.js"</span><span class="tag">&gt;&lt;/script&gt;</span>
+
+<span class="tag">&lt;!-- CSS (0 bytes, loads instantly) --&gt;</span>
+<span class="tag">&lt;link </span><span class="attr">rel</span>=<span class="str">"stylesheet"</span> <span class="attr">href</span>=<span class="str">"https://cdn.jsdelivr.net/gh/peteralieber/browser@main/browser.css"</span><span class="tag">&gt;</span></pre>
+
+    <div class="callout note">
+      The CDN files are exactly 0 bytes. Network transfer time is effectively 0 ms, subject
+      to the irreducible lower bound of the speed of light and your ISP.
+    </div>
+
+    <h3>Option 2 — npm</h3>
+    <pre>npm install browser
+<span class="cm"># or: yarn add browser | pnpm add browser | bun add browser</span></pre>
+    <p>
+      After installation, your <code>node_modules</code> directory will contain
+      the browser.js package. The size of the framework portion is 0 bytes.
+    </p>
+
+    <h3>Option 3 — Pre-installed (Recommended)</h3>
+    <p>
+      browser.js is pre-installed in your browser. No further steps are required.
+    </p>
+    <pre><span class="cm">// Verify installation</span>
+<span class="kw">typeof</span> <span class="fn">window</span>       <span class="cm">// → "object"  ✓</span>
+<span class="kw">typeof</span> <span class="fn">document</span>     <span class="cm">// → "object"  ✓</span>
+<span class="kw">typeof</span> <span class="fn">fetch</span>        <span class="cm">// → "function" ✓</span>
+<span class="cm">// browser.js confirmed.</span></pre>
+
+    <!-- QUICK START -->
+    <h2 id="quick-start" class="anchor">Quick Start</h2>
+    <p>
+      The following is a complete browser.js application:
+    </p>
+    <pre><span class="tag">&lt;!DOCTYPE html&gt;</span>
+<span class="tag">&lt;html</span> <span class="attr">lang</span>=<span class="str">"en"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;head&gt;</span>
+  <span class="tag">&lt;meta</span> <span class="attr">charset</span>=<span class="str">"UTF-8"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;title&gt;</span>My App<span class="tag">&lt;/title&gt;</span>
+<span class="tag">&lt;/head&gt;</span>
+<span class="tag">&lt;body&gt;</span>
+  <span class="tag">&lt;h1&gt;</span>Hello, World!<span class="tag">&lt;/h1&gt;</span>
+  <span class="tag">&lt;script&gt;</span>
+    <span class="cm">// browser.js is already available.</span>
+    <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">'h1'</span>).textContent = <span class="str">'Hello, browser.js!'</span>;
+  <span class="tag">&lt;/script&gt;</span>
+<span class="tag">&lt;/body&gt;</span>
+<span class="tag">&lt;/html&gt;</span></pre>
+
+    <!-- DOM -->
+    <h2 id="dom" class="anchor">DOM Manipulation</h2>
+    <p>
+      browser.js provides the complete DOM API. The following examples demonstrate
+      common operations:
+    </p>
+
+    <h3>Selecting Elements</h3>
+    <pre><span class="cm">// Single element</span>
+<span class="kw">const</span> el = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">'#my-id'</span>);
+
+<span class="cm">// Multiple elements</span>
+<span class="kw">const</span> items = <span class="fn">document</span>.<span class="fn">querySelectorAll</span>(<span class="str">'.list-item'</span>);
+
+<span class="cm">// Live HTMLCollection</span>
+<span class="kw">const</span> inputs = <span class="fn">document</span>.<span class="fn">getElementsByTagName</span>(<span class="str">'input'</span>);</pre>
+
+    <h3>Modifying the DOM</h3>
+    <pre><span class="cm">// Create and append an element</span>
+<span class="kw">const</span> div = <span class="fn">document</span>.<span class="fn">createElement</span>(<span class="str">'div'</span>);
+div.className = <span class="str">'card'</span>;
+div.textContent = <span class="str">'New card'</span>;
+<span class="fn">document</span>.body.<span class="fn">appendChild</span>(div);
+
+<span class="cm">// Or with innerHTML / insertAdjacentHTML</span>
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">'#app'</span>).innerHTML = <span class="str">`
+  &lt;ul&gt;
+    &lt;li&gt;Item 1&lt;/li&gt;
+    &lt;li&gt;Item 2&lt;/li&gt;
+  &lt;/ul&gt;
+`</span>;</pre>
+
+    <!-- EVENTS -->
+    <h2 id="events" class="anchor">Events</h2>
+    <pre><span class="cm">// Add an event listener</span>
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">'button'</span>).<span class="fn">addEventListener</span>(<span class="str">'click'</span>, (e) => {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">'Clicked!'</span>, e.target);
+});
+
+<span class="cm">// Custom events</span>
+<span class="kw">const</span> event = <span class="kw">new</span> <span class="fn">CustomEvent</span>(<span class="str">'my-event'</span>, { detail: { foo: <span class="str">'bar'</span> } });
+<span class="fn">document</span>.body.<span class="fn">dispatchEvent</span>(event);
+
+<span class="cm">// Delegation pattern</span>
+<span class="fn">document</span>.<span class="fn">addEventListener</span>(<span class="str">'click'</span>, (e) => {
+  <span class="kw">if</span> (e.target.<span class="fn">matches</span>(<span class="str">'.item'</span>)) <span class="fn">handleItem</span>(e.target);
+});</pre>
+
+    <!-- FETCH -->
+    <h2 id="fetch" class="anchor">Data Fetching</h2>
+    <pre><span class="cm">// GET request</span>
+<span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://api.example.com/data'</span>);
+<span class="kw">const</span> data = <span class="kw">await</span> res.<span class="fn">json</span>();
+
+<span class="cm">// POST request with JSON body</span>
+<span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/items'</span>, {
+  method: <span class="str">'POST'</span>,
+  headers: { <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span> },
+  body: <span class="fn">JSON</span>.<span class="fn">stringify</span>({ name: <span class="str">'New item'</span> }),
+});
+
+<span class="cm">// Streaming response</span>
+<span class="kw">const</span> stream = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/stream'</span>);
+<span class="kw">const</span> reader = stream.body.<span class="fn">getReader</span>();</pre>
+
+    <!-- STORAGE -->
+    <h2 id="storage" class="anchor">Storage</h2>
+    <pre><span class="cm">// localStorage (synchronous, survives page close)</span>
+<span class="fn">localStorage</span>.<span class="fn">setItem</span>(<span class="str">'key'</span>, <span class="str">'value'</span>);
+<span class="kw">const</span> val = <span class="fn">localStorage</span>.<span class="fn">getItem</span>(<span class="str">'key'</span>);
+
+<span class="cm">// sessionStorage (survives page reload)</span>
+<span class="fn">sessionStorage</span>.<span class="fn">setItem</span>(<span class="str">'session'</span>, <span class="str">'data'</span>);
+
+<span class="cm">// IndexedDB (async, structured, large data)</span>
+<span class="kw">const</span> db = <span class="kw">await</span> <span class="fn">indexedDB</span>.<span class="fn">open</span>(<span class="str">'my-db'</span>, <span class="str">1</span>);
+
+<span class="cm">// Cache API (for service workers)</span>
+<span class="kw">const</span> cache = <span class="kw">await</span> <span class="fn">caches</span>.<span class="fn">open</span>(<span class="str">'v1'</span>);
+<span class="kw">await</span> cache.<span class="fn">add</span>(<span class="str">'/index.html'</span>);</pre>
+
+    <!-- CSS -->
+    <h2 id="css" class="anchor">CSS &amp; Styling</h2>
+    <p>
+      browser.css provides the complete CSS engine. Use it to access any CSS feature
+      standardized or in-progress, without waiting for a library update.
+    </p>
+    <pre><span class="cm">/* browser.css: Already loaded */</span>
+
+<span class="cm">/* CSS Custom Properties */</span>
+:root { --primary: #4f46e5; }
+.button { background: var(--primary); }
+
+<span class="cm">/* CSS Grid */</span>
+.layout { display: grid; grid-template-columns: 1fr 2fr; }
+
+<span class="cm">/* CSS Subgrid */</span>
+.child { grid-column: subgrid; }
+
+<span class="cm">/* Container Queries */</span>
+@container (min-width: 600px) { .card { flex-direction: row; } }
+
+<span class="cm">/* CSS Layers */</span>
+@layer base, components, utilities;</pre>
+
+    <div class="callout info">
+      Any new CSS feature shipped by browser vendors is automatically available in browser.css
+      the moment the user updates their browser. No library update required.
+    </div>
+
+    <!-- WORKERS -->
+    <h2 id="workers" class="anchor">Web Workers</h2>
+    <pre><span class="cm">// main.js</span>
+<span class="kw">const</span> worker = <span class="kw">new</span> <span class="fn">Worker</span>(<span class="str">'worker.js'</span>);
+worker.<span class="fn">postMessage</span>({ task: <span class="str">'compute'</span>, data: [1, 2, 3] });
+worker.<span class="fn">addEventListener</span>(<span class="str">'message'</span>, (e) => <span class="fn">console</span>.<span class="fn">log</span>(e.data));
+
+<span class="cm">// worker.js</span>
+<span class="fn">self</span>.<span class="fn">addEventListener</span>(<span class="str">'message'</span>, (e) => {
+  <span class="kw">const</span> result = e.data.data.<span class="fn">reduce</span>((a, b) => a + b, 0);
+  <span class="fn">self</span>.<span class="fn">postMessage</span>(result);
+});</pre>
+
+    <!-- WEBGL -->
+    <h2 id="webgl" class="anchor">WebGL &amp; WebGPU</h2>
+    <pre><span class="cm">// WebGL 2</span>
+<span class="kw">const</span> canvas = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">'canvas'</span>);
+<span class="kw">const</span> gl = canvas.<span class="fn">getContext</span>(<span class="str">'webgl2'</span>);
+
+<span class="cm">// WebGPU (where supported)</span>
+<span class="kw">const</span> adapter = <span class="kw">await</span> navigator.gpu.<span class="fn">requestAdapter</span>();
+<span class="kw">const</span> device  = <span class="kw">await</span> adapter.<span class="fn">requestDevice</span>();</pre>
+
+    <!-- WEBSOCKETS -->
+    <h2 id="websockets" class="anchor">WebSockets</h2>
+    <pre><span class="kw">const</span> ws = <span class="kw">new</span> <span class="fn">WebSocket</span>(<span class="str">'wss://api.example.com/ws'</span>);
+
+ws.<span class="fn">addEventListener</span>(<span class="str">'open'</span>,    () => ws.<span class="fn">send</span>(<span class="str">'hello'</span>));
+ws.<span class="fn">addEventListener</span>(<span class="str">'message'</span>, (e) => <span class="fn">console</span>.<span class="fn">log</span>(e.data));
+ws.<span class="fn">addEventListener</span>(<span class="str">'close'</span>,   () => <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">'closed'</span>));</pre>
+
+    <!-- CRYPTO -->
+    <h2 id="crypto" class="anchor">Web Crypto</h2>
+    <pre><span class="cm">// Generate a random AES-GCM key</span>
+<span class="kw">const</span> key = <span class="kw">await</span> <span class="fn">crypto</span>.subtle.<span class="fn">generateKey</span>(
+  { name: <span class="str">'AES-GCM'</span>, length: 256 },
+  <span class="kw">true</span>,
+  [<span class="str">'encrypt'</span>, <span class="str">'decrypt'</span>]
+);
+
+<span class="cm">// Generate random bytes</span>
+<span class="kw">const</span> bytes = <span class="fn">crypto</span>.<span class="fn">getRandomValues</span>(<span class="kw">new</span> <span class="fn">Uint8Array</span>(32));</pre>
+
+    <!-- WASM -->
+    <h2 id="wasm" class="anchor">WebAssembly</h2>
+    <pre><span class="cm">// Fetch and compile a .wasm module</span>
+<span class="kw">const</span> { instance } = <span class="kw">await</span> <span class="fn">WebAssembly</span>.<span class="fn">instantiateStreaming</span>(
+  <span class="fn">fetch</span>(<span class="str">'module.wasm'</span>)
+);
+<span class="kw">const</span> result = instance.exports.<span class="fn">add</span>(1, 2); <span class="cm">// → 3</span></pre>
+
+    <!-- API REFERENCE -->
+    <h2 id="api-reference" class="anchor">Full API Reference</h2>
+    <p>
+      browser.js exposes every API in the Web Platform. The complete, authoritative
+      reference is maintained by the WHATWG and MDN Web Docs:
+    </p>
+    <ul>
+      <li><a href="https://developer.mozilla.org/en-US/docs/Web/API" target="_blank" rel="noopener">MDN Web Docs — Web APIs</a></li>
+      <li><a href="https://html.spec.whatwg.org/" target="_blank" rel="noopener">WHATWG HTML Living Standard</a></li>
+      <li><a href="https://dom.spec.whatwg.org/" target="_blank" rel="noopener">WHATWG DOM Living Standard</a></li>
+      <li><a href="https://tc39.es/ecma262/" target="_blank" rel="noopener">TC39 ECMAScript Specification</a></li>
+      <li><a href="https://www.w3.org/TR/css-2023/" target="_blank" rel="noopener">W3C CSS Specifications</a></li>
+    </ul>
+    <p>
+      We defer all API documentation to these upstream sources. They are more comprehensive
+      than anything we could write, and they are automatically kept up to date with each new
+      browser.js release.
+    </p>
+
+    <div class="callout note">
+      TypeScript users: the DOM type definitions bundled with TypeScript (<code>lib.dom.d.ts</code>)
+      provide full type coverage for the browser.js API. No <code>@types/browser</code> package
+      is necessary or available.
+    </div>
+
+    <!-- FAQ -->
+    <h2 id="faq" class="anchor">FAQ</h2>
+
+    <h3>Do I need to import browser.js?</h3>
+    <p>No. It is already present in every browser. You may include the CDN tag if your
+    project requires an explicit dependency manifest, but it has no functional effect.</p>
+
+    <h3>What version should I use?</h3>
+    <p>The version of browser.js in use is the version of your user's browser. You do not
+    control this and you do not need to. All versions are compatible with the Web Platform
+    standards.</p>
+
+    <h3>How do I update browser.js?</h3>
+    <p>browser.js is updated automatically when your users' browsers update. No action is
+    required. You will never need to read a migration guide, run <code>npm update</code>, or
+    modify your application to receive new features.</p>
+
+    <h3>Is browser.js tree-shakeable?</h3>
+    <p>browser.js is already 0 bytes. There is nothing to shake.</p>
+
+    <h3>Can I use browser.js with React / Vue / Svelte / Angular?</h3>
+    <p>Yes. All of those frameworks run on top of browser.js. You have always been using
+    browser.js alongside them.</p>
+
+    <h3>Does browser.js support Server-Side Rendering?</h3>
+    <p>Node.js 18+ and Deno include a growing subset of the Web Platform API.
+    Full SSR support is available in any environment that ships a browser-compatible
+    runtime (e.g., via <code>jsdom</code> or <code>happy-dom</code>).</p>
+
+    <h3>How do I report a bug in browser.js?</h3>
+    <p>Bugs in browser.js are bugs in the browser engine. Please report them to
+    <a href="https://bugs.chromium.org/" target="_blank" rel="noopener">Chromium</a>,
+    <a href="https://bugzilla.mozilla.org/" target="_blank" rel="noopener">Mozilla</a>,
+    or <a href="https://bugs.webkit.org/" target="_blank" rel="noopener">WebKit</a>
+    as appropriate. Bugs in your own code are outside the scope of this project.</p>
+
+    <h3>Can I contribute new features?</h3>
+    <p>
+      If you have implemented a new feature in your own JavaScript engine or browser fork,
+      we will include it in browser.js immediately, for free, with no update required on your
+      part or ours. Simply ship your browser and it will be in the next "release."
+    </p>
+  </main>
+</div>
+
+<footer>
+  <p>
+    browser.js is <a href="https://github.com/peteralieber/browser">open source</a> and MIT licensed.
+    Also licensed implicitly by every browser vendor, the WHATWG, the W3C, TC39, and the IETF.<br>
+    © The Internet. No bytes were harmed.
+  </p>
+</footer>
+
+</body>
+</html>
