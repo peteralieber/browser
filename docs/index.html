@@ -392,26 +392,12 @@
   <h2>Start in seconds. Or less.</h2>
   <p class="section-desc">Multiple installation paths are provided for compatibility with various developer preferences.</p>
   <div class="install-tabs">
-    <button class="tab-btn active" onclick="showTab('already', event)">Already Installed</button>
-    <button class="tab-btn" onclick="showTab('cdn', event)">CDN</button>
+    <button class="tab-btn active" onclick="showTab('cdn', event)">CDN</button>
     <button class="tab-btn" onclick="showTab('npm', event)">npm</button>
+    <button class="tab-btn" onclick="showTab('already', event)">Already Installed ★ Recommended</button>
   </div>
 
-  <div id="tab-already" class="tab-content active">
-    <div class="snippet-wrap">
-      <div class="snippet-bar">
-        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        <span>Option 1 — Recommended</span>
-      </div>
-      <pre><span class="cm">// Open a browser.
-// browser.js is now loaded.
-// Proceed with your application.</span>
-
-<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">'browser.js is ready.'</span>); <span class="cm">// → true</span></pre>
-    </div>
-  </div>
-
-  <div id="tab-cdn" class="tab-content">
+  <div id="tab-cdn" class="tab-content active">
     <div class="snippet-wrap">
       <div class="snippet-bar">
         <span class="dot"></span><span class="dot"></span><span class="dot"></span>
@@ -437,6 +423,20 @@
 
 <span class="cm"># Your node_modules directory has not meaningfully changed in size.</span>
 <span class="cm"># This is expected.</span></pre>
+    </div>
+  </div>
+
+  <div id="tab-already" class="tab-content">
+    <div class="snippet-wrap">
+      <div class="snippet-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span>Option 3 — Recommended</span>
+      </div>
+      <pre><span class="cm">// Open a browser.
+// browser.js is now loaded.
+// Proceed with your application.</span>
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">'browser.js is ready.'</span>); <span class="cm">// → true</span></pre>
     </div>
   </div>
 </section>

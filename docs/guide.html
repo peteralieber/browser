@@ -290,17 +290,7 @@
     <!-- INSTALLATION -->
     <h2 id="installation" class="anchor">Installation</h2>
 
-    <h3>Option 1 — Pre-installed (Recommended)</h3>
-    <p>
-      browser.js is pre-installed in your browser. No further steps are required.
-    </p>
-    <pre><span class="cm">// Verify installation</span>
-<span class="kw">typeof</span> <span class="fn">window</span>       <span class="cm">// → "object"  ✓</span>
-<span class="kw">typeof</span> <span class="fn">document</span>     <span class="cm">// → "object"  ✓</span>
-<span class="kw">typeof</span> <span class="fn">fetch</span>        <span class="cm">// → "function" ✓</span>
-<span class="cm">// browser.js confirmed.</span></pre>
-
-    <h3>Option 2 — CDN</h3>
+    <h3>Option 1 — CDN</h3>
     <p id="cdn" class="anchor">
       For projects that require an explicit dependency declaration, include browser.js
       via the jsDelivr CDN:
@@ -316,13 +306,23 @@
       to the irreducible lower bound of the speed of light and your ISP.
     </div>
 
-    <h3>Option 3 — npm</h3>
+    <h3>Option 2 — npm</h3>
     <pre>npm install browser
 <span class="cm"># or: yarn add browser | pnpm add browser | bun add browser</span></pre>
     <p>
       After installation, your <code>node_modules</code> directory will contain
       the browser.js package. The size of the framework portion is 0 bytes.
     </p>
+
+    <h3>Option 3 — Pre-installed (Recommended)</h3>
+    <p>
+      browser.js is pre-installed in your browser. No further steps are required.
+    </p>
+    <pre><span class="cm">// Verify installation</span>
+<span class="kw">typeof</span> <span class="fn">window</span>       <span class="cm">// → "object"  ✓</span>
+<span class="kw">typeof</span> <span class="fn">document</span>     <span class="cm">// → "object"  ✓</span>
+<span class="kw">typeof</span> <span class="fn">fetch</span>        <span class="cm">// → "function" ✓</span>
+<span class="cm">// browser.js confirmed.</span></pre>
 
     <!-- QUICK START -->
     <h2 id="quick-start" class="anchor">Quick Start</h2>

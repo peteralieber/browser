@@ -35,11 +35,7 @@ The companion library, `browser.css`, provides the most comprehensive CSS cascad
 
 ## Installation
 
-### Option 1 — You already have it (recommended)
-
-Open a browser. You're done.
-
-### Option 2 — CDN (for those who prefer explicit imports)
+### Option 1 — CDN (for those who prefer explicit imports)
 
 ```html
 <!-- browser.js (stable, 0 bytes) -->
@@ -51,13 +47,17 @@ Open a browser. You're done.
 
 The CDN download completes in sub-millisecond time. Independent benchmarks have not been able to distinguish it from zero.
 
-### Option 3 — npm
+### Option 2 — npm
 
 ```bash
 npm install browser  # downloads 0 bytes of library code
 ```
 
 _(The npm wrapper file is a concession to toolchain conventions and is not required for the framework to function.)_
+
+### Option 3 — You already have it (recommended)
+
+Open a browser. You're done.
 
 ---
 
